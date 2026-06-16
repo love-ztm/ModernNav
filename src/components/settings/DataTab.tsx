@@ -12,7 +12,11 @@ interface DataTabProps {
   prefs: UserPreferences;
 }
 
-export const DataTab: React.FC<DataTabProps> = ({ onImport, background, prefs }) => {
+export const DataTab: React.FC<DataTabProps> = ({
+  onImport,
+  background: _background,
+  prefs: _prefs,
+}) => {
   const { t } = useLanguage();
   const viewportScale = useViewportScale();
   const s = (n: number) => getIconSize(n, viewportScale);
@@ -35,10 +39,11 @@ export const DataTab: React.FC<DataTabProps> = ({ onImport, background, prefs })
       onImport(importedData.categories || [], importedData.background, importedData.prefs);
 
       setImportStatus({ type: "success", message: t("import_success") });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t("import_error");
       setImportStatus({
         type: "error",
-        message: error.message || t("import_error"),
+        message,
       });
     }
     e.target.value = "";

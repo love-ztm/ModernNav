@@ -32,7 +32,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
 }) => {
   const { t } = useLanguage();
   const viewportScale = useViewportScale();
-  const s = (n) => getIconSize(n, viewportScale);
+  const s = (n: number) => getIconSize(n, viewportScale);
 
   // Local state for inputs (UI Preview)
   const [bgInput, setBgInput] = useState(currentBackground);
@@ -92,7 +92,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
       setThemeColorInput(color);
       setLocalAutoMode(true);
       setBgStatus(t("theme_updated"));
-    } catch (e) {
+    } catch {
       setBgStatus("Extraction failed");
     } finally {
       setIsExtracting(false);

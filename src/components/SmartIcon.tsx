@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import * as LucideIcons from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { getFallbackFaviconUrls, isFaviconApiUrl } from "../utils/favicon";
 import { useViewportScale } from "../hooks/useViewportScale";
 
@@ -113,21 +114,27 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
 
   const iconKey = icon.trim().toLowerCase();
 
-  let IconComponent: React.ComponentType<any> | null = null;
+  // lucide-react re-exports each icon as a LucideIcon component. The named
+  // namespace also has helpers (`createLucideIcon`, etc.), so cast through
+  // unknown to a Record indexed by string -> LucideIcon for lookup.
+  const iconRegistry = LucideIcons as unknown as Record<string, LucideIcon | undefined>;
+
+  let IconComponent: LucideIcon | null = null;
 
   const exactKey = icon.trim();
-  IconComponent = (LucideIcons as Record<string, any>)[exactKey];
+  IconComponent = iconRegistry[exactKey] ?? null;
 
   if (!IconComponent) {
     const allKeys = Object.keys(LucideIcons);
     const matchedKey = allKeys.find((k) => k.toLowerCase() === iconKey);
     if (matchedKey) {
-      IconComponent = (LucideIcons as Record<string, any>)[matchedKey];
+      IconComponent = iconRegistry[matchedKey] ?? null;
     }
   }
 
-  if (!IconComponent && (LucideIcons as Record<string, any>).default) {
-    const defaultExport = (LucideIcons as Record<string, any>).default;
+  if (!IconComponent && (LucideIcons as Record<string, unknown>).default) {
+    const defaultExport = (LucideIcons as unknown as { default: Record<string, LucideIcon> })
+      .default;
     const defaultKeys = Object.keys(defaultExport);
     const matchedKey = defaultKeys.find((k) => k.toLowerCase() === iconKey);
     if (matchedKey) {

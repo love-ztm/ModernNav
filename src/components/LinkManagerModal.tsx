@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Category, UserPreferences } from "../types";
 import { storageService } from "../services/storage";
+import { useUpdateCategories, useUpdateBackground, useUpdatePrefs } from "../services/queries";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useViewportScale } from "../hooks/useViewportScale";
 import { getIconSize } from "../utils/favicon";
@@ -54,6 +55,10 @@ export const LinkManagerModal: React.FC<LinkManagerModalProps> = ({
   const viewportScale = useViewportScale();
   const s = (n: number) => getIconSize(n, viewportScale);
 
+  const updateCategoriesMut = useUpdateCategories();
+  const updateBackgroundMut = useUpdateBackground();
+  const updatePrefsMut = useUpdatePrefs();
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "content" | "appearance" | "general" | "data" | "security"
@@ -79,13 +84,9 @@ export const LinkManagerModal: React.FC<LinkManagerModalProps> = ({
 
   if (!isOpen) return null;
 
-  const syncCategories = async (newCategories: Category[]) => {
+  const syncCategories = (newCategories: Category[]) => {
     setCategories(newCategories);
-    try {
-      await storageService.saveCategories(newCategories);
-    } catch (e) {
-      console.error("Failed to sync", e);
-    }
+    updateCategoriesMut.mutate(newCategories);
   };
 
   const handleLogout = () => {
@@ -106,8 +107,8 @@ export const LinkManagerModal: React.FC<LinkManagerModalProps> = ({
         newPrefs?.themeColorAuto ?? true
       );
 
-      if (newBg) storageService.setBackground(newBg);
-      if (newPrefs) storageService.savePreferences(newPrefs);
+      if (newBg) updateBackgroundMut.mutate(newBg);
+      if (newPrefs) updatePrefsMut.mutate(newPrefs);
     }
   };
 

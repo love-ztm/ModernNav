@@ -17,7 +17,7 @@ import { useDashboardLogic } from "./hooks/useDashboardLogic";
 import { useResponsiveColumns } from "./hooks/useResponsiveColumns";
 import { useViewportScale } from "./hooks/useViewportScale";
 import { useLanguage } from "./contexts/LanguageContext";
-import { ThemeMode } from "./types";
+import { ThemeMode, UserPreferences } from "./types";
 import { getFaviconUrl } from "./utils/favicon";
 
 const App: React.FC = () => {
@@ -176,7 +176,7 @@ const App: React.FC = () => {
                 key={visibleSubCategory.id}
                 className="grid gap-3 sm:gap-4 3xl:gap-5 4xl:gap-6 w-full responsive-grid"
               >
-                {visibleSubCategory.items.map((link, index) => {
+                {visibleSubCategory.items.map((link) => {
                   const iconSource = link.icon || getFaviconUrl(link.url, faviconApi);
                   const scaledIconSize = Math.round(24 * viewportScale);
                   const scaledTitleSize = Math.max(12, Math.round(12 * viewportScale));
@@ -276,9 +276,9 @@ const App: React.FC = () => {
               url: string,
               opacity: number,
               color?: string,
-              layout?: any,
+              layout?: { width: number; cardWidth: number; cardHeight: number; cols: number },
               themeAuto?: boolean,
-              extra?: any
+              extra?: Partial<UserPreferences>
             ) => actions.handleUpdateAppearance(url, opacity, color, layout, themeAuto, extra)}
             isDefaultCode={isDefaultCode}
           />
