@@ -132,7 +132,7 @@ class ApiClient {
     throw lastError!;
   }
 
-  async request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
+  async request<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
     const url = path.startsWith("http") ? path : `${window.location.origin}${path}`;
 
     const headers = new Headers(options.headers || {});

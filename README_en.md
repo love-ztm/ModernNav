@@ -30,8 +30,9 @@ Built with **React**, **Tailwind CSS**, and **Cloudflare Pages** (Functions + D1
 ## 🛠️ Tech Stack
 
 - **Frontend:** React 19, Vite, Tailwind CSS, Lucide React
+- **Data Layer:** TanStack Query (with LocalStorage persistence + optimistic updates)
 - **Backend:** Cloudflare Pages Functions (Serverless)
-- **Database:** Cloudflare D1 (Serverless SQL Database)
+- **Database:** Cloudflare D1 (relational schema v2: categories / subcategories / links + config KV)
 - **Auth & Requests:** Unified API Client + Silent Refresh (JWT HMAC-SHA256)
 - **Language:** TypeScript
 
@@ -110,6 +111,8 @@ Push this code to your GitHub or GitLab repository.
     - **D1 Database:** Select the namespace you created.
 7.  **Save** and **Redeploy** (Go to Deployments > Retry deployment).
 
+> **Upgrading from a previous version (schema v1 → v2):** No manual steps. On the first request after deployment, the backend detects `schema_version` and fans the legacy JSON blob out into the new relational tables atomically inside a D1 batch. Take a backup first with `npx wrangler d1 export modern-nav-db --output=backup.sql` if you have important data.
+
 ## ⚙️ Configuration & Usage
 
 ### Initial Setup
@@ -132,10 +135,14 @@ Push this code to your GitHub or GitLab repository.
 │   └── fonts/                  # Local Fonts
 ├── functions/api/              # Cloudflare Pages Functions (Backend API)
 │   ├── auth.ts                 # Auth Endpoint (Login/Refresh/Update)
-│   ├── bootstrap.ts            # Bootstrap Endpoint (Read D1)
+│   ├── bootstrap.ts            # Bootstrap Endpoint (Read D1 + auto schema migration)
 │   ├── health.ts               # Health Check Endpoint
 │   ├── update.ts               # Sync Endpoint (Write D1)
-│   └── utils/                  # Backend Utilities (authHelpers/validation/logger)
+│   └── utils/                  # Backend Utilities
+│       ├── authHelpers.ts      # JWT / Cookie / rate limiting
+│       ├── dbHelpers.ts        # D1 schema bootstrap + v1→v2 migration + relational R/W
+│       ├── logger.ts           # Logging
+│       └── validation.ts       # Input validation
 ├── src/                        # Frontend Source Code
 │   ├── assets/                 # Assets
 │   ├── components/             # React UI Components
@@ -167,7 +174,8 @@ Push this code to your GitHub or GitLab repository.
 │   │   └── useResponsiveColumns.ts # Responsive grid columns calculation
 │   ├── services/               # Services layer
 │   │   ├── apiClient.ts        # Unified API Client (Auth/Intercept/Retry)
-│   │   └── storage.ts          # Storage & Sync Service (Core logic)
+│   │   ├── queries.ts          # TanStack Query hooks (bootstrap/categories/background/prefs)
+│   │   └── storage.ts          # Local cache + notifications + import/export
 │   ├── types/                  # TypeScript Types
 │   │   └── index.ts            # Type Definitions
 │   ├── utils/                  # Frontend Utilities

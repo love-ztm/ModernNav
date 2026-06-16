@@ -29,7 +29,7 @@ interface GeneralTabProps {
 export const GeneralTab: React.FC<GeneralTabProps> = ({ prefs, onUpdate }) => {
   const { t } = useLanguage();
   const viewportScale = useViewportScale();
-  const s = (n) => getIconSize(n, viewportScale);
+  const s = (n: number) => getIconSize(n, viewportScale);
   const [formData, setFormData] = useState({
     siteTitle: prefs.siteTitle || DEFAULT_SITE_TITLE,
     faviconApi: prefs.faviconApi || DEFAULT_FAVICON_API,
