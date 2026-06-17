@@ -1,17 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useIsMutating } from "@tanstack/react-query";
-import {
-  useBootstrap,
-  useUpdateCategories,
-  useUpdateBackground,
-  useUpdatePrefs,
-} from "../services/queries";
+import { useBootstrap, useUpdateCategories, useUpdatePrefs } from "../services/queries";
 import { storageService } from "../services/storage";
-import { getDominantColor } from "../utils/color";
-import { Category, ThemeMode, UserPreferences } from "../types";
+import { Category, ThemeMode } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
-  DEFAULT_THEME_COLOR,
   DEFAULT_FAVICON_API,
   DEFAULT_SITE_TITLE,
   DEFAULT_FOOTER_GITHUB,
@@ -22,7 +15,6 @@ import {
 export const useDashboardLogic = () => {
   const { data, isLoading, isPlaceholderData } = useBootstrap();
   const updateCategories = useUpdateCategories();
-  const updateBackground = useUpdateBackground();
   const updatePrefs = useUpdatePrefs();
   const isMutating = useIsMutating();
 
@@ -48,8 +40,9 @@ export const useDashboardLogic = () => {
   const footerGithub = prefs.footerGithub ?? DEFAULT_FOOTER_GITHUB;
   const footerLinks = prefs.footerLinks ?? [];
 
-  // Theme color tracks background when auto mode is on; otherwise saved value.
-  const [themeColor, setThemeColor] = useState<string>(prefs.themeColor || DEFAULT_THEME_COLOR);
+  // Theme color resolution + CSS-var application lives in the global
+  // useThemeColor hook (mounted at the router root) so it applies across every
+  // route. The appearance editor (admin) drives prefs directly via mutations.
 
   // Active selection (UI-only, not persisted). Stored values may be invalid
   // briefly when categories change — `effectiveActiveCategory` resolves that
@@ -71,73 +64,11 @@ export const useDashboardLogic = () => {
     visibleCategory?.subCategories[0]?.id ??
     "";
 
-  // Sync theme color CSS vars
-  useEffect(() => {
-    document.documentElement.style.setProperty("--theme-primary", themeColor);
-    document.documentElement.style.setProperty(
-      "--theme-hover",
-      `color-mix(in srgb, ${themeColor}, black 10%)`
-    );
-  }, [themeColor]);
-
-  // Re-extract dominant color when bg changes and auto mode is on.
-  useEffect(() => {
-    let cancelled = false;
-    const updateTheme = async () => {
-      if (!themeColorAuto) {
-        setThemeColor(prefs.themeColor || DEFAULT_THEME_COLOR);
-        return;
-      }
-      if (background.startsWith("http") || background.startsWith("data:")) {
-        const c = await getDominantColor(background);
-        if (!cancelled) setThemeColor(c);
-      } else {
-        setThemeColor(prefs.themeColor || DEFAULT_THEME_COLOR);
-      }
-    };
-    updateTheme();
-    return () => {
-      cancelled = true;
-    };
-  }, [background, themeColorAuto, prefs.themeColor]);
-
   // --- Action handlers ---
   const setCategories: React.Dispatch<React.SetStateAction<Category[]>> = (next) => {
     const value =
       typeof next === "function" ? (next as (c: Category[]) => Category[])(categories) : next;
     updateCategories.mutate(value);
-  };
-
-  const handleUpdateAppearance = (
-    url: string,
-    opacity: number,
-    color?: string,
-    layoutPrefs?: { width: number; cardWidth: number; cardHeight: number; cols: number },
-    themeAuto?: boolean,
-    extraPrefs?: Partial<UserPreferences>
-  ) => {
-    const updatedColor = color || prefs.themeColor || DEFAULT_THEME_COLOR;
-    const updatedAuto = themeAuto !== undefined ? themeAuto : color ? false : themeColorAuto;
-
-    if (color || themeAuto !== undefined) setThemeColor(updatedColor);
-
-    if (url !== background) updateBackground.mutate(url);
-
-    const newPrefs: UserPreferences = {
-      ...prefs,
-      cardOpacity: opacity,
-      themeColor: updatedColor,
-      themeColorAuto: updatedAuto,
-      maxContainerWidth: layoutPrefs?.width ?? maxContainerWidth,
-      cardWidth: layoutPrefs?.cardWidth ?? cardWidth,
-      cardHeight: layoutPrefs?.cardHeight ?? cardHeight,
-      gridColumns: layoutPrefs?.cols ?? gridColumns,
-      siteTitle: extraPrefs?.siteTitle ?? siteTitle,
-      faviconApi: extraPrefs?.faviconApi ?? faviconApi,
-      footerGithub: extraPrefs?.footerGithub ?? footerGithub,
-      footerLinks: extraPrefs?.footerLinks ?? footerLinks,
-    };
-    updatePrefs.mutate(newPrefs);
   };
 
   const toggleTheme = () => {
@@ -163,7 +94,6 @@ export const useDashboardLogic = () => {
       categories,
       background,
       cardOpacity,
-      themeColor,
       themeColorAuto,
       themeMode,
       isDefaultCode,
@@ -180,7 +110,6 @@ export const useDashboardLogic = () => {
     },
     actions: {
       setCategories,
-      handleUpdateAppearance,
       toggleTheme,
       toggleLanguage,
       handleMainCategoryClick,

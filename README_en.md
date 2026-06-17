@@ -9,6 +9,9 @@ Built with **React**, **Tailwind CSS**, and **Cloudflare Pages** (Functions + D1
 ## ✨ Features
 
 - **🎨 Modern Card UI:** Supports background preview and real-time configuration preview with frosted glass effects. Optimized for 2K/4K high-res displays with dynamic viewport scaling.
+- **🗂️ Routed Admin Panel:** Dedicated `/admin` routes with a unified shell + tab navigation. Every settings page is built on shared layout primitives (Container/Section/Row) for a consistent look.
+- **🌗 Site-wide Light/Dark Theme:** A design-token system scoped via `theme-light` / `theme-dark`, shared by both frontend and admin, so theme switching takes effect instantly everywhere.
+- **🎯 Global Theme Color:** The theme color is written to CSS variables via `useThemeColor`, so all frontend/admin components respond instantly once saved.
 - **🖱️ Enhanced Interaction:** Cards use native `<a>` tags, providing full support for middle-click opening, native context menus, and text selection.
 - **⚙️ Global Configuration:** "General" tab to manage site title, Favicon API, and footer links.
 - **🧩 Dynamic Footer System:** Supports custom GitHub links and multiple friendship links.
@@ -146,20 +149,27 @@ Push this code to your GitHub or GitLab repository.
 ├── src/                        # Frontend Source Code
 │   ├── assets/                 # Assets
 │   ├── components/             # React UI Components
-│   │   ├── settings/           # Settings Modal Components
-│   │   │   ├── AppearanceTab.tsx   # Appearance Tab
-│   │   │   ├── AuthScreen.tsx      # Auth/Login Screen
-│   │   │   ├── ContentTab.tsx      # Content Management Tab
-│   │   │   ├── DataTab.tsx         # Data Backup/Restore Tab
-│   │   │   ├── GeneralTab.tsx      # General Settings Tab
-│   │   │   └── SecurityTab.tsx     # Security Settings Tab
+│   │   ├── admin/              # Routed admin panel (replaces the old settings modal)
+│   │   │   ├── AdminLayout.tsx     # Admin shell (top nav + theme scope)
+│   │   │   ├── AdminGuard.tsx      # Auth route guard
+│   │   │   ├── AdminAuthPage.tsx   # Admin login page
+│   │   │   ├── ContentPage.tsx     # Content management (data wiring)
+│   │   │   ├── GeneralPage.tsx     # General settings (data wiring)
+│   │   │   ├── AppearancePage.tsx  # Appearance settings (data wiring)
+│   │   │   ├── DataPage.tsx        # Data backup (data wiring)
+│   │   │   └── SecurityPage.tsx    # Security settings (data wiring)
+│   │   ├── settings/           # Settings UI (assembled by admin pages)
+│   │   │   ├── SettingsPrimitives.tsx # Shared layout primitives (Container/Section/Row)
+│   │   │   ├── AppearanceTab.tsx   # Appearance UI
+│   │   │   ├── ContentTab.tsx      # Content management UI (split-pane card)
+│   │   │   ├── DataTab.tsx         # Data backup/restore UI
+│   │   │   ├── GeneralTab.tsx      # General settings UI
+│   │   │   └── SecurityTab.tsx     # Security settings UI
 │   │   ├── BackgroundLayer.tsx # Immersive Background Rendering
 │   │   ├── CategoryNav.tsx     # Navigation Bar
 │   │   ├── Footer.tsx          # Responsive Footer
 │   │   ├── GlassCard.tsx       # Glass Effect Card
 │   │   ├── IconPicker.tsx      # Icon Selector
-│   │   ├── LinkManagerModal.tsx # Settings Modal Container
-│   │   ├── ModalSkeleton.tsx   # Modal Loading Skeleton
 │   │   ├── SearchBar.tsx       # Search Bar
 │   │   ├── SkeletonLoader.tsx  # Semantic Skeleton Loader
 │   │   ├── SmartIcon.tsx       # Intelligent Icon (Auto-scale/Fallback)
@@ -169,6 +179,8 @@ Push this code to your GitHub or GitLab repository.
 │   │   └── LanguageContext.tsx # i18n Context
 │   ├── hooks/                  # Custom Hooks
 │   │   ├── useDashboardLogic.ts # Core Business Logic (State/Sync/Updates)
+│   │   ├── useAuth.ts          # Auth-state query
+│   │   ├── useThemeColor.ts    # Global theme-color application (writes CSS vars, site-wide)
 │   │   ├── useCategoryDragDrop.ts # Drag & Drop Logic
 │   │   ├── useViewportScale.ts # Viewport adaptive scaling
 │   │   └── useResponsiveColumns.ts # Responsive grid columns calculation
@@ -186,7 +198,7 @@ Push this code to your GitHub or GitLab repository.
 │   ├── App.tsx                 # Root Component
 │   ├── constants.tsx           # Constants Entry
 │   ├── index.tsx               # Entry Point
-│   └── index.css               # Global Styles (Tailwind + Modal Variables)
+│   └── index.css               # Global Styles (Tailwind + theme tokens + light/dark scopes)
 ├── index.html                  # HTML Entry
 ├── vite.config.ts              # Vite Configuration
 ├── tsconfig.json               # TypeScript Configuration
