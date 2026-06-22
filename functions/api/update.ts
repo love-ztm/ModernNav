@@ -4,7 +4,12 @@ interface Env {
 }
 
 import { verify, getClientIP, RateLimiter, ERROR_MESSAGES } from "./utils/authHelpers";
-import { writeAllCategories, ensureSchema } from "./utils/dbHelpers";
+import {
+  readAllCategories,
+  diffCategories,
+  applyCategoryDiff,
+  ensureSchema,
+} from "./utils/dbHelpers";
 import { UpdatePayload, Category } from "../../src/types";
 import { validateFullCategory, validatePreferences, validateBackground } from "./utils/validation";
 
@@ -47,7 +52,10 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: E
 
     await ensureSchema(env.DB);
 
-    // --- Categories: relational batch write ---
+    // --- Categories: diff-based write ---
+    // Read current state, compute a minimal diff, and apply only the changed
+    // rows in one D1 batch. A single rename used to wipe + rewrite the whole
+    // tree (hundreds of rows); now it emits one UPDATE.
     if (type === "categories") {
       if (!Array.isArray(data)) return jsonError("Categories must be an array", 400);
       if (data.length > 50) return jsonError("Too many categories (max 50)", 400);
@@ -57,7 +65,9 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: E
         if (!v.valid) return jsonError(v.message || ERROR_MESSAGES.INVALID_DATA, 400);
       }
 
-      await writeAllCategories(env.DB, data as Category[]);
+      const current = await readAllCategories(env.DB);
+      const diff = diffCategories(current, data as Category[]);
+      await applyCategoryDiff(env.DB, diff);
       return jsonOk();
     }
 
