@@ -2,8 +2,7 @@ import { BootstrapResponse } from "../../src/types";
 import {
   migrateIfNeeded,
   readAllCategories,
-  getKVConfig,
-  isDefaultAuthCode,
+  getBootstrapConfig,
   getDefaultCategories,
   getDefaultBackground,
   getDefaultPrefs,
@@ -28,17 +27,16 @@ export const onRequestGet = async ({ env }: { env: Env }) => {
 
     await migrateIfNeeded(env.DB);
 
-    const [categories, kv, defaultCode] = await Promise.all([
+    const [categories, cfg] = await Promise.all([
       readAllCategories(env.DB),
-      getKVConfig(env.DB),
-      isDefaultAuthCode(env.DB),
+      getBootstrapConfig(env.DB),
     ]);
 
     const response: BootstrapResponse = {
       categories: categories.length > 0 ? categories : getDefaultCategories(),
-      background: kv.background,
-      prefs: kv.prefs,
-      isDefaultCode: defaultCode,
+      background: cfg.background,
+      prefs: cfg.prefs,
+      isDefaultCode: cfg.isDefaultCode,
     };
     return jsonResponse(response, 200);
   } catch (error) {
