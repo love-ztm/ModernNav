@@ -32,6 +32,15 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
 
   const DefaultIcon = LucideIcons.Globe;
 
+  const currentKey = `${icon}|${sourceUrl}|${faviconApi}`;
+  const [prevKey, setPrevKey] = useState(currentKey);
+
+  if (currentKey !== prevKey) {
+    setPrevKey(currentKey);
+    setFallbackIndex(0);
+    setStatus("loading");
+  }
+
   const fallbackUrls = useMemo(() => {
     if (icon && (icon.startsWith("http") || icon.startsWith("data:"))) {
       if (icon.startsWith("data:")) return [icon];
@@ -53,14 +62,6 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
     }
     return icon;
   }, [icon, fallbackUrls, fallbackIndex]);
-
-  // Reset fallback chain when the icon source changes (e.g. user edits
-  // faviconApi in settings, or link.url changes). Without this, a stale
-  // fallbackIndex from a previous failure would skip the new primary URL.
-  useEffect(() => {
-    setFallbackIndex(0);
-    setStatus("loading");
-  }, [icon, sourceUrl, faviconApi]);
 
   const handleFallback = useCallback(() => {
     setFallbackIndex((idx) => {
@@ -116,7 +117,6 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
           <img
             src={icon}
             alt=""
-            loading="lazy"
             decoding="async"
             className={`object-contain ${imgClassName}`}
             style={{ width: scaledSize, height: scaledSize }}
@@ -141,7 +141,6 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
             key={currentSrc}
             src={currentSrc}
             alt=""
-            loading="lazy"
             decoding="async"
             className={`transition-opacity duration-300 ease-out object-contain ${imgClassName} ${
               status === "loaded" ? "opacity-100" : "opacity-0"
@@ -156,14 +155,11 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
   }
 
   const iconKey = icon.trim().toLowerCase();
-
   // lucide-react re-exports each icon as a LucideIcon component. The named
   // namespace also has helpers (`createLucideIcon`, etc.), so cast through
   // unknown to a Record indexed by string -> LucideIcon for lookup.
   const iconRegistry = LucideIcons as unknown as Record<string, LucideIcon | undefined>;
-
   let IconComponent: LucideIcon | null = null;
-
   const exactKey = icon.trim();
   IconComponent = iconRegistry[exactKey] ?? null;
 

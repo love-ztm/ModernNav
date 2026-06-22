@@ -451,7 +451,7 @@ export const ContentTab: React.FC<ContentTabProps> = ({
   );
 
   return (
-    <div className="flex w-full h-[calc(100vh-9rem)] animate-fade-in surface-elevated border border-default rounded-2xl overflow-hidden shadow-sm">
+    <div className="flex w-full h-[calc(100vh-12rem)] animate-fade-in surface-elevated border border-default rounded-2xl overflow-hidden shadow-sm">
       {/* Sidebar - Categories */}
       <div className="w-60 border-r border-default flex flex-col surface-sunken shrink-0">
         <div className="px-4 border-b border-default h-16 flex items-center justify-between shrink-0">
@@ -787,32 +787,32 @@ export const ContentTab: React.FC<ContentTabProps> = ({
                                     }
                                   `}
                                   >
-                                    <div
-                                      className={`absolute top-1 right-1 flex gap-1 opacity-0 transition-opacity z-20 ${
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openEditLink(sub.id, item);
+                                      }}
+                                      className={`absolute bottom-1 left-1 p-1.5 text-secondary hover:text-white surface-active hover:bg-[var(--theme-primary)] rounded-md backdrop-blur-sm transition-all opacity-0 z-20 ${
                                         showIconPicker
                                           ? "pointer-events-none"
                                           : "group-hover:opacity-100"
                                       }`}
                                     >
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          openEditLink(sub.id, item);
-                                        }}
-                                        className="p-1.5 text-secondary hover:text-white surface-active hover:bg-[var(--theme-primary)] rounded-md backdrop-blur-sm transition-colors"
-                                      >
-                                        <Pencil size={12} />
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteLink(sub.id, item.id);
-                                        }}
-                                        className="p-1.5 text-secondary hover:text-red-400 surface-active hover:bg-red-500/20 rounded-md backdrop-blur-sm transition-colors"
-                                      >
-                                        <Trash2 size={12} />
-                                      </button>
-                                    </div>
+                                      <Pencil size={12} />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteLink(sub.id, item.id);
+                                      }}
+                                      className={`absolute top-1 right-1 p-1.5 text-secondary hover:text-red-400 surface-active hover:bg-red-500/20 rounded-md backdrop-blur-sm transition-all opacity-0 z-20 ${
+                                        showIconPicker
+                                          ? "pointer-events-none"
+                                          : "group-hover:opacity-100"
+                                      }`}
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
 
                                     <div
                                       className={`absolute top-2 left-2 text-muted group-hover:text-secondary cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity ${

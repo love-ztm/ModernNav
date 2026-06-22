@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Globe, Save, CheckCircle2, Link as LinkIcon, Plus, Trash2, Type } from "lucide-react";
+import { Globe, Save, CheckCircle2, Link as LinkIcon, Plus, Trash2, Settings } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { UserPreferences, FooterLink } from "../../types";
 import {
@@ -56,7 +56,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ prefs, onUpdate }) => {
 
   return (
     <SettingsContainer>
-      <SettingsSection icon={Type} title={t("label_site_title")}>
+      <SettingsSection icon={Settings} title={t("tab_general")}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SettingsRow label={t("label_site_title")}>
             <input

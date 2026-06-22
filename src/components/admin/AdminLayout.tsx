@@ -8,13 +8,14 @@ import {
   ShieldCheck,
   LogOut,
   Home,
-  Shield,
 } from "lucide-react";
 import { storageService } from "../../services/storage";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useBootstrap } from "../../services/queries";
 import { ThemeMode } from "../../types";
 import { DEFAULT_PREFS } from "../../constants/defaults";
+import { DEFAULT_BACKGROUND } from "../../services/storage";
+import { BackgroundLayer } from "../BackgroundLayer";
 
 const NAV = [
   { to: "/admin/content", labelKey: "tab_content", Icon: LayoutGrid },
@@ -29,25 +30,47 @@ export const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const { data } = useBootstrap();
   const themeMode = data?.prefs.themeMode ?? DEFAULT_PREFS.themeMode;
-  const themeClass = themeMode === ThemeMode.Light ? "theme-light" : "theme-dark";
+  const background = data?.background ?? DEFAULT_BACKGROUND;
+  const isDark = themeMode === ThemeMode.Dark;
+  const themeClass = isDark ? "theme-dark" : "theme-light";
+  const adaptiveGlassBlur = isDark ? 50 : 30;
 
   const handleLogout = async () => {
     await storageService.logout();
     navigate("/admin/auth", { replace: true });
   };
 
+  const headerGlassClass = isDark
+    ? "bg-slate-900/60 border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]"
+    : "bg-white/60 border-white/40 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.12)]";
+
   return (
-    <div className={`${themeClass} min-h-screen surface-base text-primary`}>
-      {/* ─── Top Navigation Bar (MiSub-style) ─── */}
-      <header className="sticky top-0 z-50 w-full surface-elevated backdrop-blur-xl border-b border-default transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div className={`${themeClass} min-h-screen relative text-primary`}>
+      <BackgroundLayer background={background} isDark={isDark} />
+      <div
+        className={`fixed inset-0 z-0 pointer-events-none ${
+          isDark ? "bg-slate-900/40" : "bg-white/20"
+        }`}
+        style={{
+          backdropFilter: "blur(24px) saturate(140%)",
+          WebkitBackdropFilter: "blur(24px) saturate(140%)",
+        }}
+      />
+
+      {/* ─── Top Navigation Bar (Apple-glass, matches dashboard CategoryNav) ─── */}
+      <header
+        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${headerGlassClass}`}
+        style={{
+          backdropFilter: `blur(${adaptiveGlassBlur}px) saturate(180%)`,
+          WebkitBackdropFilter: `blur(${adaptiveGlassBlur}px) saturate(180%)`,
+        }}
+      >
+        <div className="relative w-full px-6 h-16 flex items-center justify-between">
           {/* Left: Brand */}
           <div className="shrink-0 pr-5">
             <button onClick={() => navigate("/")} className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
-                <Shield size={16} className="text-emerald-400" />
-              </div>
-              <span className="text-lg font-semibold tracking-tight text-primary group-hover:text-emerald-500 transition-colors">
+              <img src="/favicon.svg" alt="ModernNav" className="w-8 h-8" />
+              <span className="text-lg font-semibold tracking-tight text-secondary group-hover:text-[var(--theme-primary)] transition-colors">
                 ModernNav
               </span>
             </button>
@@ -103,7 +126,7 @@ export const AdminLayout: React.FC = () => {
       </header>
 
       {/* ─── Page Content (centered, comfortable width) ─── */}
-      <main className="w-full">
+      <main className="relative z-10 w-full">
         <div className="max-w-5xl mx-auto px-6 py-8">
           <Outlet />
         </div>
