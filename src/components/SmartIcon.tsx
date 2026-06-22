@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { getFallbackFaviconUrls, isFaviconApiUrl } from "../utils/favicon";
+import { getFallbackFaviconUrls } from "../utils/favicon";
 import { useViewportScale } from "../hooks/useViewportScale";
+
+const FAVICON_LOAD_TIMEOUT_MS = 10000;
 
 interface SmartIconProps {
   icon: string | undefined;
@@ -34,7 +36,7 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
     if (icon && (icon.startsWith("http") || icon.startsWith("data:"))) {
       if (icon.startsWith("data:")) return [icon];
 
-      if (isFaviconApiUrl(icon) && sourceUrl && faviconApi) {
+      if (sourceUrl && faviconApi) {
         return getFallbackFaviconUrls(sourceUrl, faviconApi);
       }
 
@@ -52,15 +54,56 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
     return icon;
   }, [icon, fallbackUrls, fallbackIndex]);
 
+  // Reset fallback chain when the icon source changes (e.g. user edits
+  // faviconApi in settings, or link.url changes). Without this, a stale
+  // fallbackIndex from a previous failure would skip the new primary URL.
+  useEffect(() => {
+    setFallbackIndex(0);
+    setStatus("loading");
+  }, [icon, sourceUrl, faviconApi]);
+
   const handleFallback = useCallback(() => {
-    const nextIndex = fallbackIndex + 1;
-    if (nextIndex < fallbackUrls.length) {
-      setFallbackIndex(nextIndex);
-      setStatus("loading");
-    } else {
+    setFallbackIndex((idx) => {
+      const next = idx + 1;
+      if (next < fallbackUrls.length) {
+        setStatus("loading");
+        return next;
+      }
       setStatus("error");
+      return idx;
+    });
+  }, [fallbackUrls.length]);
+
+  // Image elements don't time out on hung HTTP requests — onError never fires
+  // when the server accepts the connection but never responds. Without this,
+  // a slow primary favicon API leaves every icon stuck on the loading skeleton
+  // indefinitely. Fall through to the next URL after FAVICON_LOAD_TIMEOUT_MS.
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (status !== "loading" || !currentSrc || currentSrc.startsWith("data:")) {
+      return;
     }
-  }, [fallbackIndex, fallbackUrls.length]);
+    if (fallbackUrls.length <= 1) return;
+
+    timeoutRef.current = setTimeout(() => {
+      handleFallback();
+    }, FAVICON_LOAD_TIMEOUT_MS);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [currentSrc, status, fallbackUrls.length, handleFallback]);
+
+  const handleLoad = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setStatus("loaded");
+  }, []);
 
   if (!icon) {
     return <DefaultIcon size={scaledSize} className={className} style={style} strokeWidth={1.5} />;
@@ -104,7 +147,7 @@ export const SmartIcon: React.FC<SmartIconProps> = ({
               status === "loaded" ? "opacity-100" : "opacity-0"
             }`}
             style={{ width: scaledSize, height: scaledSize }}
-            onLoad={() => setStatus("loaded")}
+            onLoad={handleLoad}
             onError={handleFallback}
           />
         )}
