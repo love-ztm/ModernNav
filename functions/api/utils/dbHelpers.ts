@@ -281,10 +281,22 @@ function flattenCategories(categories: Category[]): FlatState {
   >();
 
   categories.forEach((cat, ci) => {
+    if (cats.has(cat.id)) {
+      console.warn(`flattenCategories: duplicate category id "${cat.id}", skipping`);
+      return;
+    }
     cats.set(cat.id, { title: cat.title, position: ci });
     cat.subCategories?.forEach((sub, si) => {
+      if (subs.has(sub.id)) {
+        console.warn(`flattenCategories: duplicate subcategory id "${sub.id}", skipping`);
+        return;
+      }
       subs.set(sub.id, { categoryId: cat.id, title: sub.title, position: si });
       sub.items?.forEach((link, li) => {
+        if (links.has(link.id)) {
+          console.warn(`flattenCategories: duplicate link id "${link.id}", skipping`);
+          return;
+        }
         links.set(link.id, {
           subcategoryId: sub.id,
           title: link.title,
