@@ -4,8 +4,8 @@
 // overwriting 100KB blobs.
 
 import type { Category, SubCategory, LinkItem, UserPreferences } from "../../../src/types";
+import { ThemeMode } from "../../../src/types";
 
-// @ts-expect-error - D1Database is provided by Cloudflare environment
 export type D1 = D1Database;
 
 export const CURRENT_SCHEMA_VERSION = 2;
@@ -32,8 +32,7 @@ const DEFAULT_BACKGROUND = "radial-gradient(circle at 50% -20%, #334155, #0f172a
 const DEFAULT_PREFS: UserPreferences = {
   cardOpacity: 0.1,
   themeColor: "#6280a3",
-  // @ts-expect-error - ThemeMode enum value string
-  themeMode: "dark",
+  themeMode: ThemeMode.Dark,
 };
 
 // ---------------------------------------------------------------------------
@@ -61,6 +60,10 @@ export async function ensureSchema(db: D1): Promise<void> {
   );
   await db.exec("CREATE INDEX IF NOT EXISTS idx_sub_cat ON subcategories(category_id, position)");
   await db.exec("CREATE INDEX IF NOT EXISTS idx_link_sub ON links(subcategory_id, position)");
+  await db.exec(
+    "CREATE TABLE IF NOT EXISTS rate_limits (identifier TEXT NOT NULL, scope TEXT NOT NULL, window_end INTEGER NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (identifier, scope))"
+  );
+  await db.exec("CREATE INDEX IF NOT EXISTS idx_rl_window ON rate_limits(window_end)");
   schemaReady = true;
 }
 
@@ -445,7 +448,7 @@ export function diffCategories(current: Category[], next: Category[]): CategoryD
 export async function applyCategoryDiff(db: D1, diff: CategoryDiff): Promise<void> {
   if (diff.isEmpty) return;
 
-  const stmts: any[] = [];
+  const stmts: D1PreparedStatement[] = [];
 
   // --- 1. Parent INSERTs ---
   for (const i of diff.categories.inserts) {
@@ -466,7 +469,7 @@ export async function applyCategoryDiff(db: D1, diff: CategoryDiff): Promise<voi
   // --- 2. UPDATEs (must precede DELETEs to survive cascade) ---
   for (const u of diff.categories.updates) {
     const sets: string[] = [];
-    const binds: any[] = [];
+    const binds: (string | number)[] = [];
     if (u.title !== undefined) {
       sets.push("title = ?");
       binds.push(u.title);
@@ -480,7 +483,7 @@ export async function applyCategoryDiff(db: D1, diff: CategoryDiff): Promise<voi
   }
   for (const u of diff.subcategories.updates) {
     const sets: string[] = [];
-    const binds: any[] = [];
+    const binds: (string | number)[] = [];
     if (u.categoryId !== undefined) {
       sets.push("category_id = ?");
       binds.push(u.categoryId);
@@ -500,7 +503,7 @@ export async function applyCategoryDiff(db: D1, diff: CategoryDiff): Promise<voi
   }
   for (const u of diff.links.updates) {
     const sets: string[] = [];
-    const binds: any[] = [];
+    const binds: (string | number | null)[] = [];
     if (u.subcategoryId !== undefined) {
       sets.push("subcategory_id = ?");
       binds.push(u.subcategoryId);
@@ -557,7 +560,7 @@ export async function applyCategoryDiff(db: D1, diff: CategoryDiff): Promise<voi
 // Full replace via batch: wipe + insert in one D1 batch. Retained as the
 // migration / reset path and as a fallback if a diff ever looks unsafe.
 export async function writeAllCategories(db: D1, categories: Category[]): Promise<void> {
-  const stmts: any[] = [
+  const stmts: D1PreparedStatement[] = [
     db.prepare("DELETE FROM links"),
     db.prepare("DELETE FROM subcategories"),
     db.prepare("DELETE FROM categories"),

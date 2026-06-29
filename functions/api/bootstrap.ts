@@ -9,7 +9,6 @@ import {
 } from "./utils/dbHelpers";
 
 interface Env {
-  // @ts-expect-error - D1Database is provided by Cloudflare environment
   DB?: D1Database;
 }
 

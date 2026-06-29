@@ -1,9 +1,7 @@
 interface Env {
-  // @ts-expect-error - D1Database is provided by Cloudflare environment
   DB?: D1Database;
 }
 
-// 导入共享工具
 import {
   verify,
   generateToken,
@@ -12,15 +10,18 @@ import {
   getClientIP,
   ERROR_MESSAGES,
 } from "./utils/authHelpers";
+import { ensureSchema } from "./utils/dbHelpers";
 
 // 创建速率限制器实例 - 为不同操作设置独立的限制
-const loginRateLimiter = new RateLimiter(10, 15 * 60 * 1000); // 登录：15分钟内最多10次
-const refreshRateLimiter = new RateLimiter(100, 15 * 60 * 1000); // 刷新token：15分钟内最多100次
-const updateRateLimiter = new RateLimiter(10, 15 * 60 * 1000); // 修改密码：15分钟内最多10次
+const loginRateLimiter = new RateLimiter("auth_login", 10, 15 * 60 * 1000); // 登录：15分钟内最多10次
+const refreshRateLimiter = new RateLimiter("auth_refresh", 100, 15 * 60 * 1000); // 刷新token：15分钟内最多100次
+const updateRateLimiter = new RateLimiter("auth_update", 10, 15 * 60 * 1000); // 修改密码：15分钟内最多10次
 
 export const onRequestPost = async ({ request, env }: { request: Request; env: Env }) => {
   try {
     const clientIP = getClientIP(request);
+
+    if (env.DB) await ensureSchema(env.DB);
 
     const body = (await request.json()) as Record<string, unknown>;
     const { action, code, currentCode, newCode } = body as {
@@ -51,8 +52,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: E
 
     // 1. 登录
     if (action === "login") {
-      if (!loginRateLimiter.isAllowed(clientIP)) {
-        const resetTime = loginRateLimiter.getResetTime(clientIP);
+      if (!(await loginRateLimiter.isAllowed(env.DB, clientIP))) {
+        const resetTime = await loginRateLimiter.getResetTime(env.DB, clientIP);
         return new Response(
           JSON.stringify({
             error: ERROR_MESSAGES.RATE_LIMITED,
@@ -90,8 +91,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: E
 
     // 2. 刷新 Token
     if (action === "refresh") {
-      if (!refreshRateLimiter.isAllowed(clientIP)) {
-        const resetTime = refreshRateLimiter.getResetTime(clientIP);
+      if (!(await refreshRateLimiter.isAllowed(env.DB, clientIP))) {
+        const resetTime = await refreshRateLimiter.getResetTime(env.DB, clientIP);
         return new Response(
           JSON.stringify({
             error: ERROR_MESSAGES.RATE_LIMITED,
@@ -141,8 +142,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: E
         );
       }
 
-      if (!updateRateLimiter.isAllowed(clientIP)) {
-        const resetTime = updateRateLimiter.getResetTime(clientIP);
+      if (!(await updateRateLimiter.isAllowed(env.DB, clientIP))) {
+        const resetTime = await updateRateLimiter.getResetTime(env.DB, clientIP);
         return new Response(
           JSON.stringify({
             error: ERROR_MESSAGES.RATE_LIMITED,
