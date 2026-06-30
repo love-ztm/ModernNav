@@ -2,8 +2,7 @@ import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/re
 import { Category, UserPreferences, BootstrapResponse } from "../types";
 import { apiClient } from "./apiClient";
 import { INITIAL_CATEGORIES } from "../constants";
-import { DEFAULT_PREFS } from "../constants/defaults";
-import { DEFAULT_BACKGROUND } from "./storage";
+import { DEFAULT_PREFS, DEFAULT_BACKGROUND } from "../constants/defaults";
 
 // --- QueryClient Singleton ---
 export const queryClient = new QueryClient({
