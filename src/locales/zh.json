@@ -113,5 +113,7 @@
   "cmd_toggle_theme": "切换主题",
   "cmd_toggle_lang": "切换语言",
   "cmd_go_admin": "进入管理后台",
-  "cmd_go_home": "返回首页"
+  "cmd_go_home": "返回首页",
+  "fetch_metadata": "抓取信息",
+  "fetching_metadata": "抓取中..."
 }

@@ -113,5 +113,7 @@
   "cmd_toggle_theme": "Toggle Theme",
   "cmd_toggle_lang": "Switch Language",
   "cmd_go_admin": "Go to Admin",
-  "cmd_go_home": "Back to Home"
+  "cmd_go_home": "Back to Home",
+  "fetch_metadata": "Fetch info",
+  "fetching_metadata": "Fetching..."
 }

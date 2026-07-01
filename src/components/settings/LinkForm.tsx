@@ -1,8 +1,9 @@
-import React from "react";
-import { Plus, Save, Smile } from "lucide-react";
+import React, { useRef, useEffect } from "react";
+import { Plus, Save, Smile, Wand2, Loader2 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { IconPicker } from "../IconPicker";
 import { SmartIcon } from "../SmartIcon";
+import { apiClient } from "../../services/apiClient";
 import type { ContentEditorState, ContentEditorActions } from "./useContentEditor";
 
 interface LinkFormProps {
@@ -10,12 +11,104 @@ interface LinkFormProps {
   actions: ContentEditorActions;
 }
 
+function isValidUrl(str: string | undefined): str is string {
+  if (!str) return false;
+  try {
+    const u = new URL(str);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export const LinkForm: React.FC<LinkFormProps> = ({ state, actions }) => {
   const { t } = useLanguage();
-  const { linkFormData, showIconPicker, iconSearch, editingLinkId, iconPickerRef, iconGroupRef } =
-    state;
-  const { setLinkFormData, setShowIconPicker, setIconSearch, closeLinkForm, handleSaveLink } =
-    actions;
+  const {
+    linkFormData,
+    showIconPicker,
+    iconSearch,
+    editingLinkId,
+    iconPickerRef,
+    iconGroupRef,
+    isFetching,
+  } = state;
+  const {
+    setLinkFormData,
+    setShowIconPicker,
+    setIconSearch,
+    closeLinkForm,
+    handleSaveLink,
+    setIsFetching,
+  } = actions;
+
+  const abortRef = useRef<AbortController | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formDataRef = useRef(linkFormData);
+
+  useEffect(() => {
+    formDataRef.current = linkFormData;
+  });
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const doFetch = (url: string, fillOnlyBlanks: boolean) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setIsFetching(true);
+
+    apiClient
+      .fetchMetadata(url, controller.signal)
+      .then((meta) => {
+        if (controller.signal.aborted) return;
+        const current = formDataRef.current;
+        setLinkFormData({
+          ...current,
+          title: fillOnlyBlanks && current.title ? current.title : meta.title || current.title,
+          description:
+            fillOnlyBlanks && current.description
+              ? current.description
+              : meta.description || current.description,
+          icon: fillOnlyBlanks && current.icon ? current.icon : meta.icon || current.icon,
+        });
+      })
+      .catch(() => {
+        // Silent failure
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsFetching(false);
+      });
+  };
+
+  const handleUrlChange = (value: string) => {
+    abortRef.current?.abort();
+    setIsFetching(false);
+    setLinkFormData({ ...linkFormData, url: value });
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (
+      isValidUrl(value) &&
+      !linkFormData.title &&
+      !linkFormData.description &&
+      !linkFormData.icon
+    ) {
+      debounceRef.current = setTimeout(() => {
+        doFetch(value, true);
+      }, 800);
+    }
+  };
+
+  const handleManualFetch = () => {
+    if (isValidUrl(linkFormData.url) && !isFetching) {
+      doFetch(linkFormData.url, false);
+    }
+  };
 
   return (
     <div
@@ -73,20 +166,35 @@ export const LinkForm: React.FC<LinkFormProps> = ({ state, actions }) => {
         </div>
         <div className="col-span-2 sm:col-span-1">
           <label className="label-xs">{t("label_url")}</label>
-          <input
-            type="text"
-            value={linkFormData.url}
-            onChange={(e) => setLinkFormData({ ...linkFormData, url: e.target.value })}
-            placeholder={t("url_placeholder")}
-            className="input-primary"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={linkFormData.url}
+              onChange={(e) => handleUrlChange(e.target.value)}
+              placeholder={t("url_placeholder")}
+              className="input-primary pr-10"
+            />
+            <button
+              onClick={handleManualFetch}
+              disabled={isFetching || !isValidUrl(linkFormData.url)}
+              title={t(isFetching ? "fetching_metadata" : "fetch_metadata")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md transition-colors text-muted hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {isFetching ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+            </button>
+          </div>
         </div>
         <div className="col-span-2 sm:col-span-1">
           <label className="label-xs">{t("label_desc")}</label>
           <input
             type="text"
             value={linkFormData.description}
-            onChange={(e) => setLinkFormData({ ...linkFormData, description: e.target.value })}
+            onChange={(e) =>
+              setLinkFormData({
+                ...linkFormData,
+                description: e.target.value,
+              })
+            }
             placeholder={t("desc_placeholder")}
             className="input-primary"
           />
