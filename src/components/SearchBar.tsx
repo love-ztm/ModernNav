@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import { SearchEngine, ThemeMode } from "../types";
-import { SEARCH_ENGINES } from "../constants";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getFaviconUrl } from "../utils/favicon";
 import { SmartIcon } from "./SmartIcon";
@@ -10,15 +9,17 @@ interface SearchBarProps {
   themeMode: ThemeMode;
   faviconApi?: string;
   viewportScale?: number;
+  searchEngines: SearchEngine[];
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   themeMode,
   faviconApi,
   viewportScale = 1,
+  searchEngines,
 }) => {
   const [query, setQuery] = useState("");
-  const [selectedEngine, setSelectedEngine] = useState<SearchEngine>(SEARCH_ENGINES[0]);
+  const [selectedEngine, setSelectedEngine] = useState<SearchEngine>(searchEngines[0]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [hoveredEngine, setHoveredEngine] = useState<string | null>(null);
@@ -162,7 +163,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <div className="absolute top-full left-0 right-0 mt-2 z-[80]">
             <div className={`px-1 ${dropdownClasses} rounded-xl overflow-hidden shadow-2xl`}>
               <div className="h-10 flex flex-row overflow-x-auto no-scrollbar gap-1.5 px-1 items-center">
-                {SEARCH_ENGINES.map((engine) => (
+                {searchEngines.map((engine) => (
                   <button
                     key={engine.id}
                     type="button"

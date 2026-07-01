@@ -115,5 +115,11 @@
   "cmd_go_admin": "Go to Admin",
   "cmd_go_home": "Back to Home",
   "fetch_metadata": "Fetch info",
-  "fetching_metadata": "Fetching..."
+  "fetching_metadata": "Fetching...",
+  "label_search_engines": "Search Engines",
+  "label_search_engines_desc": "Customize search engines shown in the search bar. The search query is appended to the end of the URL template.",
+  "btn_reset_default": "Reset Default",
+  "search_engine_name": "Name",
+  "search_engine_url": "URL Template",
+  "search_engine_icon": "Icon Domain"
 }

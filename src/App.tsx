@@ -35,6 +35,7 @@ const App: React.FC = () => {
     faviconApi,
     footerGithub,
     footerLinks,
+    searchEngines,
   } = state;
 
   const navigate = useNavigate();
@@ -129,6 +130,7 @@ const App: React.FC = () => {
         categories={categories}
         themeMode={themeMode}
         faviconApi={faviconApi}
+        searchEngines={searchEngines}
         onCategoryClick={actions.handleMainCategoryClick}
         onSubCategoryClick={actions.handleSubCategoryClick}
         toggleTheme={actions.toggleTheme}
@@ -143,7 +145,12 @@ const App: React.FC = () => {
         style={{ maxWidth: `${scaledMaxContainerWidth}px` }}
       >
         <section className="w-full mb-14 3xl:mb-20 4xl:mb-24 animate-fade-in-down relative z-[70] isolation-isolate">
-          <SearchBar themeMode={themeMode} faviconApi={faviconApi} viewportScale={viewportScale} />
+          <SearchBar
+            themeMode={themeMode}
+            faviconApi={faviconApi}
+            viewportScale={viewportScale}
+            searchEngines={searchEngines}
+          />
         </section>
 
         <main className="w-full pb-20 relative z-[10] space-y-8">

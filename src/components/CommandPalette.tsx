@@ -2,8 +2,7 @@ import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Command } from "cmdk";
 import { Search, FolderOpen, Sun, Moon, Globe, Settings, Home } from "lucide-react";
-import { Category, ThemeMode } from "../types";
-import { SEARCH_ENGINES } from "../constants";
+import { Category, SearchEngine, ThemeMode } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
 import { SmartIcon } from "./SmartIcon";
 import { getFaviconUrl } from "../utils/favicon";
@@ -32,6 +31,7 @@ interface CommandPaletteProps {
   categories: Category[];
   themeMode: ThemeMode;
   faviconApi?: string;
+  searchEngines: SearchEngine[];
   onCategoryClick: (cat: Category) => void;
   onSubCategoryClick: (catId: string, subId: string) => void;
   toggleTheme: () => void;
@@ -51,6 +51,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   categories,
   themeMode,
   faviconApi,
+  searchEngines,
   onCategoryClick,
   onSubCategoryClick,
   toggleTheme,
@@ -305,7 +306,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
               {search.trim() && (
                 <Command.Group heading={t("cmd_search_engines")} className={groupHeadingClass}>
-                  {SEARCH_ENGINES.map((engine) => (
+                  {searchEngines.map((engine) => (
                     <Command.Item
                       key={engine.id}
                       value={`search-engine:${engine.id}`}
