@@ -26,6 +26,7 @@ export interface ContentEditorState {
   isAnyEditing: boolean;
   iconPickerRef: React.RefObject<HTMLDivElement>;
   iconGroupRef: React.RefObject<HTMLDivElement>;
+  isFetching: boolean;
 }
 
 export interface ContentEditorActions {
@@ -42,6 +43,7 @@ export interface ContentEditorActions {
   setLinkFormData: (d: LinkFormData) => void;
   setShowIconPicker: (v: boolean) => void;
   setIconSearch: (v: string) => void;
+  setIsFetching: (v: boolean) => void;
   handleAddCategory: () => void;
   handleUpdateCategoryTitle: (id: string) => void;
   handleDeleteCategory: (id: string, name: string) => void;
@@ -96,6 +98,7 @@ export function useContentEditor(
   // --- Icon Picker State ---
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [iconSearch, setIconSearch] = useState("");
+  const [isFetching, setIsFetching] = useState(false);
   const iconPickerRef = useRef<HTMLDivElement>(null);
   const iconGroupRef = useRef<HTMLDivElement>(null);
 
@@ -386,6 +389,7 @@ export function useContentEditor(
       isAnyEditing,
       iconPickerRef,
       iconGroupRef,
+      isFetching,
     },
     actions: {
       setSelectedCategoryId,
@@ -401,6 +405,7 @@ export function useContentEditor(
       setLinkFormData,
       setShowIconPicker,
       setIconSearch,
+      setIsFetching,
       handleAddCategory,
       handleUpdateCategoryTitle,
       handleDeleteCategory,

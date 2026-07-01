@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { ChevronDown, Globe, Moon, Sun, Settings, Menu, X } from "lucide-react";
+import { ChevronDown, Globe, Moon, Sun, Settings, Menu, X, Search } from "lucide-react";
 import { Category, ThemeMode } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useViewportScale } from "../hooks/useViewportScale";
@@ -15,6 +15,7 @@ interface CategoryNavProps {
   toggleTheme: () => void;
   toggleLanguage: () => void;
   openSettings: () => void;
+  onSearchClick: () => void;
 }
 
 export const CategoryNav: React.FC<CategoryNavProps> = ({
@@ -27,6 +28,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
   toggleTheme,
   toggleLanguage,
   openSettings,
+  onSearchClick,
 }) => {
   const { t } = useLanguage();
   const viewportScale = useViewportScale();
@@ -137,6 +139,9 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
           </button>
 
           <div className="flex items-center gap-1">
+            <button onClick={onSearchClick} className={mobileButtonClass}>
+              <Search size={s(18)} />
+            </button>
             <button onClick={toggleLanguage} className={mobileButtonClass}>
               <Globe size={s(18)} />
             </button>
@@ -310,6 +315,9 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
 
             <div className="w-[1px] h-5 mx-2 rounded-full bg-slate-400/20 dark:bg-white/10" />
 
+            <button onClick={onSearchClick} className={actionButtonClass} title="Search (⌘K)">
+              <Search size={s(18)} />
+            </button>
             <button onClick={toggleLanguage} className={actionButtonClass} title="Switch Language">
               <Globe size={s(18)} />
             </button>

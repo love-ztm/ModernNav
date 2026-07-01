@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { FolderOpen } from "lucide-react";
 import { SmartIcon } from "./components/SmartIcon";
@@ -8,6 +8,7 @@ import { ToastContainer } from "./components/Toast";
 import { SyncIndicator } from "./components/SyncIndicator";
 import { BackgroundLayer } from "./components/BackgroundLayer";
 import { CategoryNav } from "./components/CategoryNav";
+import { CommandPalette } from "./components/CommandPalette";
 import { Footer } from "./components/Footer";
 import { SkeletonLoader } from "./components/SkeletonLoader";
 import { useDashboardLogic } from "./hooks/useDashboardLogic";
@@ -34,12 +35,34 @@ const App: React.FC = () => {
     faviconApi,
     footerGithub,
     footerLinks,
+    searchEngines,
   } = state;
 
   const navigate = useNavigate();
   const { t } = useLanguage();
 
   const viewportScale = useViewportScale();
+
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const handleSearchClick = useCallback(() => setCmdOpen(true), []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCmdOpen((o) => !o);
+      }
+      if (
+        e.key === "/" &&
+        !["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)
+      ) {
+        e.preventDefault();
+        setCmdOpen(true);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const scaledCardHeight = Math.round(cardHeight * viewportScale);
   const scaledCardWidth = Math.round(cardWidth * viewportScale);
@@ -100,6 +123,21 @@ const App: React.FC = () => {
         toggleTheme={actions.toggleTheme}
         toggleLanguage={actions.toggleLanguage}
         openSettings={() => navigate("/admin")}
+        onSearchClick={handleSearchClick}
+      />
+
+      <CommandPalette
+        categories={categories}
+        themeMode={themeMode}
+        faviconApi={faviconApi}
+        searchEngines={searchEngines}
+        onCategoryClick={actions.handleMainCategoryClick}
+        onSubCategoryClick={actions.handleSubCategoryClick}
+        toggleTheme={actions.toggleTheme}
+        toggleLanguage={actions.toggleLanguage}
+        navigate={navigate}
+        open={cmdOpen}
+        onOpenChange={setCmdOpen}
       />
 
       <div
@@ -107,7 +145,12 @@ const App: React.FC = () => {
         style={{ maxWidth: `${scaledMaxContainerWidth}px` }}
       >
         <section className="w-full mb-14 3xl:mb-20 4xl:mb-24 animate-fade-in-down relative z-[70] isolation-isolate">
-          <SearchBar themeMode={themeMode} faviconApi={faviconApi} viewportScale={viewportScale} />
+          <SearchBar
+            themeMode={themeMode}
+            faviconApi={faviconApi}
+            viewportScale={viewportScale}
+            searchEngines={searchEngines}
+          />
         </section>
 
         <main className="w-full pb-20 relative z-[10] space-y-8">
