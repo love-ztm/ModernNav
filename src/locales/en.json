@@ -102,5 +102,16 @@
   "btn_update_settings": "Update Settings",
   "msg_saved": "Saved!",
   "syncing_msg": "Syncing changes to cloud...",
-  "back_to_home": "Back to home"
+  "back_to_home": "Back to home",
+  "cmd_placeholder": "Search links, commands...",
+  "cmd_links": "Links",
+  "cmd_categories": "Categories",
+  "cmd_commands": "Commands",
+  "cmd_search_engines": "Search Engines",
+  "cmd_no_results": "No results found",
+  "cmd_search_with": "Search \"{query}\" with {engine}",
+  "cmd_toggle_theme": "Toggle Theme",
+  "cmd_toggle_lang": "Switch Language",
+  "cmd_go_admin": "Go to Admin",
+  "cmd_go_home": "Back to Home"
 }

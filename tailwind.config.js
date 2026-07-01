@@ -24,6 +24,7 @@ export default {
         shimmer: "shimmer 2s infinite",
         "fade-in-down": "fadeInDown 0.5s ease-out forwards",
         "fade-in": "fadeIn 0.5s ease-out forwards",
+        "scale-in": "scaleIn 150ms ease-out",
       },
       keyframes: {
         blob: {
@@ -43,6 +44,10 @@ export default {
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
+        },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.98)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
         },
       },
     },

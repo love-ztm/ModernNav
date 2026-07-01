@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { FolderOpen } from "lucide-react";
 import { SmartIcon } from "./components/SmartIcon";
@@ -8,6 +8,7 @@ import { ToastContainer } from "./components/Toast";
 import { SyncIndicator } from "./components/SyncIndicator";
 import { BackgroundLayer } from "./components/BackgroundLayer";
 import { CategoryNav } from "./components/CategoryNav";
+import { CommandPalette } from "./components/CommandPalette";
 import { Footer } from "./components/Footer";
 import { SkeletonLoader } from "./components/SkeletonLoader";
 import { useDashboardLogic } from "./hooks/useDashboardLogic";
@@ -40,6 +41,27 @@ const App: React.FC = () => {
   const { t } = useLanguage();
 
   const viewportScale = useViewportScale();
+
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const handleSearchClick = useCallback(() => setCmdOpen(true), []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCmdOpen((o) => !o);
+      }
+      if (
+        e.key === "/" &&
+        !["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)
+      ) {
+        e.preventDefault();
+        setCmdOpen(true);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const scaledCardHeight = Math.round(cardHeight * viewportScale);
   const scaledCardWidth = Math.round(cardWidth * viewportScale);
@@ -100,6 +122,20 @@ const App: React.FC = () => {
         toggleTheme={actions.toggleTheme}
         toggleLanguage={actions.toggleLanguage}
         openSettings={() => navigate("/admin")}
+        onSearchClick={handleSearchClick}
+      />
+
+      <CommandPalette
+        categories={categories}
+        themeMode={themeMode}
+        faviconApi={faviconApi}
+        onCategoryClick={actions.handleMainCategoryClick}
+        onSubCategoryClick={actions.handleSubCategoryClick}
+        toggleTheme={actions.toggleTheme}
+        toggleLanguage={actions.toggleLanguage}
+        navigate={navigate}
+        open={cmdOpen}
+        onOpenChange={setCmdOpen}
       />
 
       <div
