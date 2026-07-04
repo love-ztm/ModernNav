@@ -4,6 +4,9 @@ import { FolderOpen } from "lucide-react";
 import { SmartIcon } from "./components/SmartIcon";
 import { SearchBar } from "./components/SearchBar";
 import { GlassCard } from "./components/GlassCard";
+import { CardCompact } from "./components/CardCompact";
+import { CardList } from "./components/CardList";
+import { CardModeSwitch } from "./components/CardModeSwitch";
 import { ToastContainer } from "./components/Toast";
 import { SyncIndicator } from "./components/SyncIndicator";
 import { BackgroundLayer } from "./components/BackgroundLayer";
@@ -14,8 +17,11 @@ import { SkeletonLoader } from "./components/SkeletonLoader";
 import { useDashboardLogic } from "./hooks/useDashboardLogic";
 import { useResponsiveColumns } from "./hooks/useResponsiveColumns";
 import { useViewportScale } from "./hooks/useViewportScale";
+import { useBootstrap, useUpdatePrefs } from "./services/queries";
 import { useLanguage } from "./contexts/LanguageContext";
 import { getFaviconUrl } from "./utils/favicon";
+import { CardDisplayMode } from "./types";
+import { DEFAULT_PREFS } from "./constants/defaults";
 
 const App: React.FC = () => {
   const { state, actions } = useDashboardLogic();
@@ -36,15 +42,27 @@ const App: React.FC = () => {
     footerGithub,
     footerLinks,
     searchEngines,
+    cardDisplayMode,
+    navStyle: _navStyle,
+    searchStyle: _searchStyle,
   } = state;
 
   const navigate = useNavigate();
   const { t } = useLanguage();
-
   const viewportScale = useViewportScale();
+  const updatePrefs = useUpdatePrefs();
+  const { data: bootstrapData } = useBootstrap();
 
   const [cmdOpen, setCmdOpen] = useState(false);
   const handleSearchClick = useCallback(() => setCmdOpen(true), []);
+
+  const handleCardModeChange = useCallback(
+    (mode: CardDisplayMode) => {
+      const currentPrefs = bootstrapData?.prefs ?? DEFAULT_PREFS;
+      updatePrefs.mutate({ ...currentPrefs, cardDisplayMode: mode });
+    },
+    [bootstrapData?.prefs, updatePrefs]
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -173,62 +191,88 @@ const App: React.FC = () => {
                     : visibleSubCategory.title}
                 </h3>
                 <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-slate-400/30 dark:to-white/20" />
+                <CardModeSwitch mode={cardDisplayMode} onChange={handleCardModeChange} />
               </div>
-              <div
-                key={visibleSubCategory.id}
-                className="grid gap-3 sm:gap-4 3xl:gap-5 4xl:gap-6 w-full responsive-grid"
-              >
-                {visibleSubCategory.items.map((link) => {
-                  const iconSource = link.icon || getFaviconUrl(link.url, faviconApi);
-                  const scaledIconSize = Math.round(24 * viewportScale);
-                  const scaledTitleSize = Math.max(12, Math.round(12 * viewportScale));
 
-                  return (
-                    <GlassCard
-                      key={link.id}
-                      hoverEffect={true}
-                      opacity={cardOpacity}
-                      themeMode={themeMode}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onBeforeNavigate={() => {
-                        navigator.sendBeacon("/api/visit", JSON.stringify({ linkId: link.id }));
-                      }}
-                      className="flex flex-col items-center justify-center text-center p-2 relative group animate-card-enter"
-                      style={{
-                        height: `${scaledCardHeight}px`,
-                        animationFillMode: "backwards",
-                      }}
-                      title={
-                        link.description
-                          ? `${link.description}\n${link.url}`
-                          : `${link.title}\n${link.url}`
-                      }
-                    >
-                      <div
-                        className="mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] flex items-center justify-center"
-                        style={{ height: `${scaledIconSize}px`, width: `${scaledIconSize}px` }}
+              {cardDisplayMode === "compact" && (
+                <CardCompact
+                  items={visibleSubCategory.items}
+                  faviconApi={faviconApi}
+                  viewportScale={viewportScale}
+                />
+              )}
+
+              {cardDisplayMode === "list" && (
+                <CardList
+                  items={visibleSubCategory.items}
+                  faviconApi={faviconApi}
+                  viewportScale={viewportScale}
+                />
+              )}
+
+              {cardDisplayMode === "standard" && (
+                <div
+                  key={visibleSubCategory.id}
+                  className="grid gap-3 sm:gap-4 3xl:gap-5 4xl:gap-6 w-full responsive-grid"
+                >
+                  {visibleSubCategory.items.map((link) => {
+                    const iconSource = link.icon || getFaviconUrl(link.url, faviconApi);
+                    const scaledIconSize = Math.round(24 * viewportScale);
+                    const scaledTitleSize = Math.max(12, Math.round(12 * viewportScale));
+
+                    return (
+                      <GlassCard
+                        key={link.id}
+                        hoverEffect={true}
+                        opacity={cardOpacity}
+                        themeMode={themeMode}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onBeforeNavigate={() => {
+                          navigator.sendBeacon("/api/visit", JSON.stringify({ linkId: link.id }));
+                        }}
+                        className="flex flex-col items-center justify-center text-center p-2 relative group animate-card-enter"
+                        style={{
+                          height: `${scaledCardHeight}px`,
+                          animationFillMode: "backwards",
+                        }}
+                        title={
+                          link.description
+                            ? `${link.description}\n${link.url}`
+                            : `${link.title}\n${link.url}`
+                        }
                       >
-                        <SmartIcon
-                          icon={iconSource}
-                          imgClassName="object-contain drop-shadow-md rounded-md"
-                          size={scaledIconSize}
-                          style={{ width: `${scaledIconSize}px`, height: `${scaledIconSize}px` }}
-                          faviconApi={faviconApi}
-                          sourceUrl={link.icon ? undefined : link.url}
-                        />
-                      </div>
-                      <span
-                        className="font-medium truncate w-full px-1 transition-colors duration-300 text-slate-800 dark:text-white/80 dark:group-hover:text-white"
-                        style={{ fontSize: `${scaledTitleSize}px` }}
-                      >
-                        {link.title}
-                      </span>
-                    </GlassCard>
-                  );
-                })}
-              </div>
+                        <div
+                          className="mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] flex items-center justify-center"
+                          style={{
+                            height: `${scaledIconSize}px`,
+                            width: `${scaledIconSize}px`,
+                          }}
+                        >
+                          <SmartIcon
+                            icon={iconSource}
+                            imgClassName="object-contain drop-shadow-md rounded-md"
+                            size={scaledIconSize}
+                            style={{
+                              width: `${scaledIconSize}px`,
+                              height: `${scaledIconSize}px`,
+                            }}
+                            faviconApi={faviconApi}
+                            sourceUrl={link.icon ? undefined : link.url}
+                          />
+                        </div>
+                        <span
+                          className="font-medium truncate w-full px-1 transition-colors duration-300 text-slate-800 dark:text-white/80 dark:group-hover:text-white"
+                          style={{ fontSize: `${scaledTitleSize}px` }}
+                        >
+                          {link.title}
+                        </span>
+                      </GlassCard>
+                    );
+                  })}
+                </div>
+              )}
 
               {visibleSubCategory.items.length === 0 && (
                 <div className="text-center py-16 flex flex-col items-center gap-3 text-slate-400 dark:text-white/20">
