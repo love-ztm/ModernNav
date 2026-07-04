@@ -43,8 +43,8 @@ const App: React.FC = () => {
     footerLinks,
     searchEngines,
     cardDisplayMode,
-    navStyle: _navStyle,
-    searchStyle: _searchStyle,
+    navStyle,
+    searchStyle,
   } = state;
 
   const navigate = useNavigate();
@@ -142,6 +142,7 @@ const App: React.FC = () => {
         toggleLanguage={actions.toggleLanguage}
         openSettings={() => navigate("/admin")}
         onSearchClick={handleSearchClick}
+        navStyle={navStyle}
       />
 
       <CommandPalette
@@ -168,6 +169,7 @@ const App: React.FC = () => {
             faviconApi={faviconApi}
             viewportScale={viewportScale}
             searchEngines={searchEngines}
+            searchStyle={searchStyle}
           />
         </section>
 
