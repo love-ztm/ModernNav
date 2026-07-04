@@ -82,7 +82,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
 
   const islandContainerClass =
     navStyle === "flush"
-      ? `relative flex items-center justify-center p-1.5 w-full border-b transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] bg-white/60 dark:bg-slate-900/60 border-white/40 dark:border-white/10`
+      ? `relative flex items-center justify-center px-6 h-16 w-full border-b transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] bg-white/60 dark:bg-slate-900/60 border-white/40 dark:border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.12)] dark:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]`
       : navStyle === "minimal"
         ? `relative flex items-center justify-center p-1`
         : `relative flex items-center justify-center p-1.5 rounded-full border transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] bg-white/60 dark:bg-slate-900/60 border-white/40 dark:border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)]`;
