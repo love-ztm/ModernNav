@@ -6,7 +6,6 @@ import {
   Wand2,
   Loader2,
   Image as ImageIcon,
-  Palette,
   Sparkles,
   Layers,
   Type,
@@ -28,18 +27,13 @@ import {
   DEFAULT_ANIMATION_STAGGER,
   DEFAULT_NAV_STYLE,
   DEFAULT_SEARCH_STYLE,
-  DEFAULT_CARD_DISPLAY_MODE,
-  DEFAULT_THEME_PRESET,
 } from "../../constants/defaults";
-import { THEME_PRESETS } from "../../constants/themes";
 import { getDominantColor } from "../../utils/color";
 import { useViewportScale } from "../../hooks/useViewportScale";
 import { getIconSize } from "../../utils/favicon";
 import { SettingsContainer, SettingsSection, SettingsRow } from "./SettingsPrimitives";
 import {
-  ThemePresetName,
   AnimationLevel,
-  CardDisplayMode,
   NavStyle,
   SearchStyle,
   FontWeightOption,
@@ -65,9 +59,6 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
   const [opacityInput, setOpacityInput] = useState(prefs.cardOpacity);
   const [themeColorInput, setThemeColorInput] = useState(prefs.themeColor || "#8b9dc3");
   const [localAutoMode, setLocalAutoMode] = useState(prefs.themeColorAuto ?? true);
-  const [themePreset, setThemePreset] = useState<ThemePresetName>(
-    prefs.themePreset ?? DEFAULT_THEME_PRESET
-  );
 
   const [widthInput, setWidthInput] = useState(prefs.maxContainerWidth ?? DEFAULT_LAYOUT_UI.width);
   const [cardWidthInput, setCardWidthInput] = useState(
@@ -78,9 +69,6 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
   );
   const [colsInput, setColsInput] = useState(prefs.gridColumns ?? DEFAULT_LAYOUT_UI.cols);
 
-  const [cardDisplayMode, setCardDisplayMode] = useState<CardDisplayMode>(
-    prefs.cardDisplayMode ?? DEFAULT_CARD_DISPLAY_MODE
-  );
   const [animationLevel, setAnimationLevel] = useState<AnimationLevel>(
     prefs.animationLevel ?? DEFAULT_ANIMATION_LEVEL
   );
@@ -123,12 +111,10 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
       cardOpacity: opacityInput,
       themeColor: themeColorInput,
       themeColorAuto: localAutoMode,
-      themePreset,
       maxContainerWidth: widthInput,
       cardWidth: cardWidthInput,
       cardHeight: cardHeightInput,
       gridColumns: colsInput,
-      cardDisplayMode,
       animationLevel,
       animationSpeed,
       animationStagger,
@@ -150,15 +136,6 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
   const handleColorPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     setThemeColorInput(e.target.value);
     setLocalAutoMode(false);
-  };
-
-  const handlePresetSelect = (name: ThemePresetName) => {
-    const preset = THEME_PRESETS[name as Exclude<ThemePresetName, "custom">];
-    if (preset) {
-      setThemePreset(name);
-      setThemeColorInput(preset.primary);
-      setLocalAutoMode(false);
-    }
   };
 
   const handleAutoExtract = async () => {
@@ -186,11 +163,6 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
   };
 
   const animLevels: AnimationLevel[] = ["none", "subtle", "fluid", "expressive"];
-  const cardModes: { value: CardDisplayMode; label: string }[] = [
-    { value: "compact", label: t("card_mode_compact") },
-    { value: "standard", label: t("card_mode_standard") },
-    { value: "list", label: t("card_mode_list") },
-  ];
   const navStyles: { value: NavStyle; label: string }[] = [
     { value: "floating", label: t("nav_floating") },
     { value: "flush", label: t("nav_flush") },
@@ -267,7 +239,7 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1 surface-active rounded-lg appearance-none cursor-pointer accent-[var(--theme-primary)]"
+        className="w-full h-1 surface-active rounded-lg cursor-pointer accent-[var(--theme-primary)]"
       />
     </div>
   );
@@ -345,48 +317,6 @@ export const AppearanceTab: React.FC<AppearanceTabProps> = ({
           </SettingsRow>
         </div>
       </section>
-
-      {/* Theme Presets */}
-      <SettingsSection
-        icon={Palette}
-        title={t("theme_presets")}
-        description={t("theme_presets_desc")}
-      >
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-          {Object.values(THEME_PRESETS).map((preset) => (
-            <button
-              key={preset.name}
-              onClick={() => handlePresetSelect(preset.name)}
-              className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
-                themePreset === preset.name
-                  ? "border-[var(--theme-primary)] bg-[var(--theme-primary)]/10 shadow-md"
-                  : "border-muted hover:border-[var(--theme-primary)]/40"
-              }`}
-            >
-              <div
-                className="w-8 h-8 rounded-full shadow-inner border border-white/20"
-                style={{ background: preset.primary }}
-              />
-              <span className="text-[9px] font-bold uppercase tracking-wider text-secondary">
-                {preset.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </SettingsSection>
-
-      {/* Card Display Mode */}
-      <SettingsSection
-        icon={Layers}
-        title={t("card_display_mode")}
-        description={t("card_display_mode_desc")}
-      >
-        <SegmentedControl
-          options={cardModes}
-          value={cardDisplayMode}
-          onChange={setCardDisplayMode}
-        />
-      </SettingsSection>
 
       {/* Animation System */}
       <SettingsSection
