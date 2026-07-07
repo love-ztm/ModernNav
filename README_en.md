@@ -8,27 +8,28 @@ A personal navigation dashboard with a glassmorphism aesthetic. Built with React
 
 **Frontend**
 
-- Glassmorphism cards — blur/saturation/rim-light physics engine, adaptive light/dark theme
-- Dynamic Island nav bar — floating glass nav on desktop, slide-out drawer on mobile
+- Glassmorphism cards — adjustable blur, saturation, noise, and tint; adaptive light/dark theme
+- Dynamic Island nav bar — floating glass nav on desktop, slide-out drawer on mobile; multiple nav styles
 - Command palette — `Ctrl+K` or `/` to open, fuzzy search with pinyin initial matching
-- Multi-engine search bar — configurable search engines in admin, dropdown switcher
+- Multi-engine search bar — configurable search engines in admin, dropdown switcher; multiple search bar styles
 - Most Visited — automatic click tracking, generates a virtual category of frequently used links
 - 1080p / 2K / 4K viewport auto-scaling, all dimensions proportional
-- Light/dark theme toggle, global accent color with one click
-- English and Chinese, one-click switch
+- Light/dark theme toggle, global accent color
+- English and Chinese
 - PWA offline cache
 
 **Admin Panel (`/admin`)**
 
 - Content — CRUD for categories/subcategories/links, drag & drop reorder
 - General — site title, favicon API, search engine config, most-visited toggle
-- Appearance — background image, blur, opacity, theme color (auto-extract from image)
+- Appearance — background image, theme color (auto-extract from image), glass parameters (blur/saturation/noise/tint), border-radius scale, nav style
 - Data — JSON import/export, browser bookmark HTML import
 - Security — change admin password
 - Link form auto-fetches page title and description
 
 **Engineering**
 
+- Design token system — all visual parameters driven by CSS custom properties, admin changes take effect instantly
 - Relational storage — D1 tables (categories / subcategories / links) + config KV, auto v1→v2 migration
 - Diff-based writes — only sends changes, single D1 batch transaction
 - JWT HMAC-SHA256 auth + HttpOnly cookie silent refresh + per-IP rate limiting
@@ -184,6 +185,7 @@ src/
 │   └── Toast.tsx                       # Toast notifications
 ├── hooks/
 │   ├── useDashboardLogic.ts            # Core business logic (incl. most-visited)
+│   ├── useDesignTokens.ts              # Design token engine (CSS variable writer)
 │   ├── useThemeColor.ts                # Theme color + dark class management
 │   ├── useViewportScale.ts             # Viewport scale factor
 │   ├── useResponsiveColumns.ts         # Responsive columns
@@ -199,7 +201,8 @@ src/
 │   ├── en.json                         # English translations
 │   └── zh.json                         # Chinese translations
 ├── constants/
-│   └── defaults.ts                     # Default value constants
+│   ├── defaults.ts                     # Default value constants
+│   └── themes.ts                       # Theme preset palettes
 ├── types/
 │   ├── index.ts                        # Shared type definitions
 │   └── errors.ts                       # ApiError class
@@ -219,4 +222,4 @@ src/
 
 ## License
 
-MIT
+[MIT](LICENSE)
